@@ -86,12 +86,15 @@ describe Spree::PaymentMethod::LoyaltyPoints do
 
   describe 'credit' do
 
-    let(:refund) { create(:refund, amount: 1) }
+    let(:refund) { create(:refund, amount: 1, payment: payment) }
+    let(:return_authorization) { double('ReturnAuthorization', loyalty_points: 30) }
+    let(:return_item) { double('ReturnItem', return_authorization: return_authorization) }
+    let(:reimbursement) { double('Reimbursement', return_items: [return_item]) }
 
     before :each do
       allow(Spree::Order).to receive(:find_by_number).and_return(@order)
       allow(@order).to receive(:loyalty_points_for).and_return(30)
-      allow(refund).to receive(:reimbursement).and_return(create(:reimbursement))
+      allow(refund).to receive(:reimbursement).and_return(reimbursement)
     end
 
     it 'should be a new ActiveMerchant::Billing::Response' do

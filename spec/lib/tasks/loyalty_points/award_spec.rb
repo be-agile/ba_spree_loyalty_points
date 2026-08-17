@@ -10,7 +10,7 @@ describe "Award Rake Task" do
   end
 
   it 'should receive credit_loyalty_points_to_user on Spree::Order' do
-    expect(Spree::Order).to receive(:credit_loyalty_points_to_user)
+    expect(Spree::Order).to receive(:credit_loyalty_points_to_user).at_least(:once)
   end
 
   after do

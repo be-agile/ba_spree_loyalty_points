@@ -40,6 +40,10 @@ module Spree
           params.require(:loyalty_points_transaction).permit(:loyalty_points, :type, :comment, :source_id, :source_type)
         end
 
+        def permitted_resource_params
+          loyalty_points_transaction_params
+        end
+
         def build_resource
           if params[:loyalty_points_transaction].present? && params[:loyalty_points_transaction][:type].present?
             parent.send(association_name(params[:loyalty_points_transaction][:type])).build
@@ -63,7 +67,7 @@ module Spree
         def set_ordered_transactions
           @loyalty_points_transactions = @loyalty_points_transactions.order(updated_at: :desc).
                                            page(params[:page]).
-                                           per(params[:per_page] || Spree::Backend::Config[:admin_orders_per_page])
+                                           per(params[:per_page] || 25)
         end
     end
   end

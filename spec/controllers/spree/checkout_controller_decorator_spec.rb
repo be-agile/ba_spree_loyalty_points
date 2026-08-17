@@ -2,112 +2,94 @@ require 'spec_helper'
 
 describe Spree::CheckoutController, type: :controller do
 
-  let(:user) { mock_model(Spree.user_class).as_null_object }
-  let(:order) { mock_model(Spree::Order).as_null_object }
-  let(:loyalty_points_payment_method) { Spree::PaymentMethod::LoyaltyPoints.create!(active: true, name: 'Loyalty_Points') }
+  let(:user) { mock_model(Spree.user_class, has_sufficient_loyalty_points?: true).as_null_object }
+  let(:order) { mock_model(Spree::Order, token: 'test_token', state: 'payment', user: user).as_null_object }
   let(:payment) { Spree::Payment.new(amount: 50.0) }
 
   before(:each) do
+    @routes = Spree::Core::Engine.routes
+    @store = Spree::Store.first_or_create!(
+      name: 'Test Store',
+      code: 'test',
+      url: 'test.example.com',
+      mail_from_address: 'test@example.com',
+      default_currency: 'USD',
+      default_country_id: Spree::Country.first_or_create!(iso: 'US', iso3: 'USA', iso_name: 'UNITED STATES', name: 'United States').id
+    )
+    @loyalty_points_payment_method = Spree::PaymentMethod::LoyaltyPoints.create!(
+      active: true,
+      name: 'Loyalty_Points',
+      stores: [@store]
+    )
     allow(controller).to receive(:spree_current_user).and_return(user)
     allow(user).to receive(:generate_spree_api_key!).and_return(true)
     allow(controller).to receive(:authorize!).and_return(true)
     allow(controller).to receive(:load_order).and_return(true)
   end
 
-  describe "PUT 'update'" do
+  describe "#sufficient_loyalty_points (decorator method)" do
     before :each do
-      allow(controller).to receive(:ensure_order_not_completed).and_return(true)
-      allow(controller).to receive(:ensure_sufficient_stock_lines).and_return(true)
       controller.instance_variable_set(:@order, order)
-      allow(controller).to receive(:load_order_with_lock).and_return(true)
+      controller.params[:state] = 'payment'
+      controller.request = ActionDispatch::TestRequest.create
+      controller.response = ActionDispatch::TestResponse.new
     end
 
-    context "when state is payment" do
-
-      def send_request
-        put :update, params: { state: "payment", order: { payments_attributes: [{payment_method_id: loyalty_points_payment_method.id}], id: order.id } }
+    context "when loyalty points payment method is used" do
+      before do
+        controller.params[:order] = { payments_attributes: [{ payment_method_id: @loyalty_points_payment_method.id.to_s }] }
       end
 
-      context "when loyalty points used" do
-
-        before :each do
-          allow(Spree::PaymentMethod).to receive(:loyalty_points_id_included?).and_return(true)
+      context "when user has sufficient loyalty points" do
+        before do
           allow(order.user).to receive(:has_sufficient_loyalty_points?).and_return(true)
-          allow(order).to receive(:can_go_to_state?).and_return(false)
         end
 
-        it "should receive loyalty_points_id_included? on Spree::PaymentMethod" do
-          expect(Spree::PaymentMethod).to receive(:loyalty_points_id_included?)
-          send_request
+        it "does not set flash error" do
+          controller.send(:sufficient_loyalty_points)
+          expect(controller.flash[:error]).to be_nil
         end
 
-        it "should receive has_sufficient_loyalty_points? on Spree::PaymentMethod" do
-          expect(order.user).to receive(:has_sufficient_loyalty_points?)
-          send_request
+        it "does not redirect" do
+          result = controller.send(:sufficient_loyalty_points)
+          expect(result).to be_nil
         end
-
-        context "when user does not have sufficient loyalty points" do
-
-          before :each do
-            allow(Spree::PaymentMethod).to receive(:loyalty_points_id_included?).and_return(true)
-            allow(order.user).to receive(:has_sufficient_loyalty_points?).and_return(false)
-          end
-
-          it "should add error to flash" do
-            send_request
-            expect(flash[:error]).to eq(Spree.t(:insufficient_loyalty_points))
-          end
-
-          it "should redirect to payments page" do
-            send_request
-            expect(response).to redirect_to(checkout_state_path(order.state))
-          end
-
-        end
-
-        context "when user has sufficient loyalty points" do
-
-          before :each do
-            allow(order.user).to receive(:has_sufficient_loyalty_points?).and_return(true)
-            allow(order).to receive(:completed?).and_return(false)
-          end
-
-          it "should not add error to flash" do
-            send_request
-            expect(flash[:error]).to be_nil
-          end
-
-          it "should redirect to payments page" do
-            send_request
-            expect(response).to redirect_to(checkout_state_path(order.state))
-          end
-
-        end
-
       end
 
-      context "when loyalty points not used" do
-
-        let(:check_payment_method) { Spree::PaymentMethod::Check.create!(active: true, name: 'Check') }
-
-        def send_request
-          put :update, params: { state: "payment", order: { payments_attributes: [{payment_method_id: check_payment_method.id}], id: order.id } }
+      context "when user does not have sufficient loyalty points" do
+        before do
+          allow(order.user).to receive(:has_sufficient_loyalty_points?).and_return(false)
         end
 
-        before :each do
-          allow(Spree::PaymentMethod).to receive(:loyalty_points_id_included?).and_return(false)
-          allow(order).to receive(:can_go_to_state?).and_return(false)
+        it "sets flash error message" do
+          allow(controller).to receive(:redirect_to)
+          controller.send(:sufficient_loyalty_points)
+          expect(controller.flash[:error]).to eq(Spree.t(:insufficient_loyalty_points))
         end
 
-        it "should receive loyalty_points_id_included? on Spree::PaymentMethod" do
-          expect(Spree::PaymentMethod).to receive(:loyalty_points_id_included?)
-          send_request
+        it "redirects to checkout payment page" do
+          expect(controller).to receive(:redirect_to).with(Spree::Core::Engine.routes.url_helpers.checkout_state_path(order.token, order.state))
+          controller.send(:sufficient_loyalty_points)
         end
-
       end
-
     end
 
+    context "when loyalty points payment method is not used" do
+      before do
+        check_payment_method = Spree::PaymentMethod::Check.create!(active: true, name: 'Check', stores: [@store])
+        controller.params[:order] = { payments_attributes: [{ payment_method_id: check_payment_method.id.to_s }] }
+      end
+
+      it "does not set flash error" do
+        controller.send(:sufficient_loyalty_points)
+        expect(controller.flash[:error]).to be_nil
+      end
+
+      it "does not redirect" do
+        result = controller.send(:sufficient_loyalty_points)
+        expect(result).to be_nil
+      end
+    end
   end
 
 end

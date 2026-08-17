@@ -15,14 +15,15 @@ Gem::Specification.new do |s|
   s.author      = 'be agile Co., Ltd.'
   s.email       = 'develop@be-agile.jp'
   s.homepage    = 'https://github.com/be-agile/ba_spree_loyalty_points'
-  s.licenses    = ['AGPL-3.0-or-later', 'BSD-3-Clause']
+  s.licenses    = ['AGPL-3.0-or-later']
 
   s.require_path = 'lib'
   s.requirements << 'none'
 
-  s.add_dependency 'spree_core', '~> 4.10.1'
-  s.add_dependency 'spree_backend', '>= 4.8.0'
-  s.add_dependency 'spree_frontend', '>= 4.8.0'
+  s.add_dependency 'spree_core', '~> 5.3.0'
+  s.add_dependency 'spree_admin', '= 5.3.6'
+  s.add_dependency 'spree_storefront', '= 5.3.6'
+  s.add_dependency 'deface'
   s.add_development_dependency 'capybara', '~> 2.5'
   s.add_development_dependency 'coffee-rails', '~> 4.2.1'
   s.add_development_dependency 'database_cleaner', '~> 1.5.3'
@@ -31,8 +32,12 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec-rails', '~> 3.4'
   s.add_development_dependency 'rspec-activemodel-mocks'
   s.add_development_dependency 'shoulda-matchers', '~> 3.1.1'
-  s.add_development_dependency 'sass-rails', '~> 5.0.0'
+  s.add_development_dependency 'sass-rails', '~> 5.1.1'
   s.add_development_dependency 'selenium-webdriver', '~> 3.0.8'
   s.add_development_dependency 'simplecov', '~> 0.13.0'
   s.add_development_dependency 'sqlite3', '~> 1.3.13'
+  s.add_development_dependency 'rails-controller-testing', '~> 1.0.1'
+
+  # @gem-override マーカーの差分確認に使う開発ツール
+  s.add_development_dependency 'gem_override_marker'
 end

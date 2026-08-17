@@ -14,7 +14,7 @@ This extension allows only Loyalty Points payment method for making a purchase a
 
 * Supports Ruby 3.1
 * Supports Rails 7.1
-* Supports Spree 4.10
+* Supports Spree 5.3
 * Japanese translations included
 * Actively maintained with contributions back to the original project
 

@@ -2,9 +2,31 @@ require "spec_helper"
 
 describe Spree::PaymentMethod do
 
-  let(:loyalty_points_payment_method) { Spree::PaymentMethod::LoyaltyPoints.create!(active: true, name: 'Loyalty_Points') }
-  let(:payment_method2) { Spree::PaymentMethod::Check.create!(active: true, name: 'Check1') }
-  let(:payment_method3) { Spree::PaymentMethod::Check.create!(active: true, name: 'Check1') }
+  let!(:spree_country) {
+    Spree::Country.first || Spree::Country.create!(
+      name: 'Japan',
+      iso_name: 'JAPAN',
+      iso: 'JP',
+      iso3: 'JPN',
+      numcode: 392
+    )
+  }
+
+  let!(:spree_store) {
+    Spree::Store.first || Spree::Store.create!(
+      name: 'Test Store',
+      code: 'test',
+      url: 'test.com',
+      mail_from_address: 'test@test.com',
+      default: true,
+      default_currency: 'JPY',
+      default_country: spree_country
+    )
+  }
+
+  let(:loyalty_points_payment_method) { Spree::PaymentMethod::LoyaltyPoints.create!(active: true, name: 'Loyalty_Points', stores: [spree_store]) }
+  let(:payment_method2) { Spree::PaymentMethod::Check.create!(active: true, name: 'Check1', stores: [spree_store]) }
+  let(:payment_method3) { Spree::PaymentMethod::Check.create!(active: true, name: 'Check1', stores: [spree_store]) }
 
   describe 'loyalty_points_type' do
 

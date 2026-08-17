@@ -1,4 +1,4 @@
-<%= paginate @loyalty_points_transactions %>
+<%= paginate @loyalty_points_transactions if @loyalty_points_transactions.respond_to?(:total_pages) %>
 
 <% if @loyalty_points_transactions.present? %>
   <table class="loyalty-points-summary table table-striped table-hover">
@@ -41,4 +41,4 @@
   <p><%= Spree.t(:you_have_not_earned_any_loyalty_points_yet) %></p>
 <% end %>
 
-<%= paginate @loyalty_points_transactions %>
+<%= paginate @loyalty_points_transactions if @loyalty_points_transactions.respond_to?(:total_pages) %>

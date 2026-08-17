@@ -153,8 +153,6 @@ describe Spree::Payment do
     before :each do
       payment.order = order
       order.payments = payments + [payment]
-      allow(order.payments).to receive(:with_state).with('checkout').and_return(order.payments)
-      allow(order.payments).to receive(:where).and_return(order.payments)
     end
 
     context "when payment not by loyalty points" do
@@ -165,18 +163,31 @@ describe Spree::Payment do
 
       context "with correct method flow" do
         it "should receive with_state on order.payments" do
-          expect(payment.order.payments).to receive(:with_state).with('checkout')
+          # Create a double chain that returns empty array to avoid state transition errors
+          checkout_payments = double('checkout_payments')
+          allow(checkout_payments).to receive(:where).and_return([])
+          expect(payment.order.payments).to receive(:with_state).with('checkout').and_return(checkout_payments)
+          payment.send(:invalidate_old_payments)
         end
 
         it "should receive where on order.payments" do
-          expect(payment.order.payments).to receive(:where)
+          checkout_payments = double('checkout_payments')
+          allow(payment.order.payments).to receive(:with_state).with('checkout').and_return(checkout_payments)
+          expect(checkout_payments).to receive(:where).and_return([])
+          payment.send(:invalidate_old_payments)
         end
 
         it "should receive invalidate" do
-          expect(payment).to receive(:invalidate!)
+          # This test doesn't make sense - payment itself doesn't call invalidate! on itself
+          # It calls invalidate! on other payments. Skip this expectation and just verify behavior.
+          checkout_payments = double('checkout_payments')
+          other_payment = double('other_payment')
+          allow(payment.order.payments).to receive(:with_state).with('checkout').and_return(checkout_payments)
+          allow(checkout_payments).to receive(:where).and_return([other_payment])
+          expect(other_payment).to receive(:store_credit?).and_return(false)
+          expect(other_payment).to receive(:invalidate!)
+          payment.send(:invalidate_old_payments)
         end
-
-        after { payment.send(:invalidate_old_payments) }
       end
     end
 

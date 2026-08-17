@@ -7,38 +7,38 @@
   <div class="card-body">
     <div class="row">
       <div class="col-12 col-md-6">
-        <%= f.field_container :loyalty_points_awarding_unit do %>
-          <%= f.label :loyalty_points_awarding_unit, Spree.t('admin.store.loyalty_points_awarding_unit') %>
-          <%= f.number_field :loyalty_points_awarding_unit, class: 'form-control', min: 0, step: 0.01 %>
-        <% end %>
+        <div class="form-group">
+          <%= f.label :preferred_loyalty_points_awarding_unit, Spree.t('admin.store.loyalty_points_awarding_unit') %>
+          <%= f.number_field :preferred_loyalty_points_awarding_unit, class: 'form-control', min: 0, step: 0.01 %>
+        </div>
       </div>
       <div class="col-12 col-md-6">
-        <%= f.field_container :loyalty_points_redeeming_balance do %>
-          <%= f.label :loyalty_points_redeeming_balance, Spree.t('admin.store.loyalty_points_redeeming_balance') %>
-          <%= f.number_field :loyalty_points_redeeming_balance, class: 'form-control', min: 0, step: 0.01 %>
-        <% end %>
+        <div class="form-group">
+          <%= f.label :preferred_loyalty_points_redeeming_balance, Spree.t('admin.store.loyalty_points_redeeming_balance') %>
+          <%= f.number_field :preferred_loyalty_points_redeeming_balance, class: 'form-control', min: 0, step: 0.01 %>
+        </div>
       </div>
     </div>
     <div class="row mt-3">
       <div class="col-12 col-md-6">
-        <%= f.field_container :loyalty_points_conversion_rate do %>
-          <%= f.label :loyalty_points_conversion_rate, Spree.t('admin.store.loyalty_points_conversion_rate') %>
-          <%= f.number_field :loyalty_points_conversion_rate, class: 'form-control', min: 0, step: 0.01 %>
-        <% end %>
+        <div class="form-group">
+          <%= f.label :preferred_loyalty_points_conversion_rate, Spree.t('admin.store.loyalty_points_conversion_rate') %>
+          <%= f.number_field :preferred_loyalty_points_conversion_rate, class: 'form-control', min: 0, step: 0.01 %>
+        </div>
       </div>
       <div class="col-12 col-md-6">
-        <%= f.field_container :loyalty_points_award_period do %>
-          <%= f.label :loyalty_points_award_period, Spree.t('admin.store.loyalty_points_award_period') %>
-          <%= f.number_field :loyalty_points_award_period, class: 'form-control', min: 0 %>
-        <% end %>
+        <div class="form-group">
+          <%= f.label :preferred_loyalty_points_award_period, Spree.t('admin.store.loyalty_points_award_period') %>
+          <%= f.number_field :preferred_loyalty_points_award_period, class: 'form-control', min: 0 %>
+        </div>
       </div>
     </div>
     <div class="row mt-3">
       <div class="col-12">
-        <%= f.field_container :min_amount_required_to_get_loyalty_points do %>
-          <%= f.label :min_amount_required_to_get_loyalty_points, Spree.t('admin.store.min_amount_required_to_get_loyalty_points') %>
-          <%= f.number_field :min_amount_required_to_get_loyalty_points, class: 'form-control', min: 0, step: 0.01 %>
-        <% end %>
+        <div class="form-group">
+          <%= f.label :preferred_min_amount_required_to_get_loyalty_points, Spree.t('admin.store.min_amount_required_to_get_loyalty_points') %>
+          <%= f.number_field :preferred_min_amount_required_to_get_loyalty_points, class: 'form-control', min: 0, step: 0.01 %>
+        </div>
       </div>
     </div>
   </div>

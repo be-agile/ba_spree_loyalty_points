@@ -4,7 +4,7 @@ module Spree
     def index
       @loyalty_points_transactions = spree_current_user.loyalty_points_transactions.includes(:source).order(updated_at: :desc).
                                        page(params[:page]).
-                                       per(params[:per_page] || Spree::Backend::Config[:admin_orders_per_page])
+                                       per(params[:per_page] || 25)
     end
 
   end

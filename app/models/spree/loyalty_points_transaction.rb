@@ -4,7 +4,7 @@ module Spree
     TRANSACTION_TYPES = ['Spree::LoyaltyPointsCreditTransaction', 'Spree::LoyaltyPointsDebitTransaction']
     CLASS_TO_TRANSACTION_TYPE = { 'Spree::LoyaltyPointsCreditTransaction' => 'Credit', 'Spree::LoyaltyPointsDebitTransaction' => 'Debit'}
     belongs_to :user, class_name: "::#{Spree.user_class}"
-    belongs_to :source, polymorphic: true
+    belongs_to :source, polymorphic: true, optional: true
 
     validates :loyalty_points, numericality: { only_integer: true, message: Spree.t('validation.must_be_int'), greater_than: 0 }
     validates :type, inclusion: { in: TRANSACTION_TYPES }
@@ -15,6 +15,17 @@ module Spree
     scope :for_order, ->(order) { where(source: order) }
 
     before_create :generate_transaction_id
+
+    # Spree 5.2(Ransack 4.x)は検索・ソート対象を明示的に allowlist することを要求する。
+    # ActiveRecord::Base 継承で Spree::Core::Ransackable を含まないため、Ransack 標準の
+    # ransackable_attributes / ransackable_associations をオーバーライドして許可する。
+    def self.ransackable_attributes(_auth_object = nil)
+      %w[id loyalty_points type user_id source_id source_type balance comment transaction_id created_at updated_at]
+    end
+
+    def self.ransackable_associations(_auth_object = nil)
+      %w[user source]
+    end
 
     def transaction_type
       CLASS_TO_TRANSACTION_TYPE[type]

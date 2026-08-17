@@ -26,7 +26,7 @@ describe Spree::LoyaltyPointsTransaction, type: :model do
     end
 
     it "belongs_to source" do
-      is_expected.to belong_to(:source)
+      is_expected.to belong_to(:source).optional
     end
 
 end
@@ -151,8 +151,8 @@ end
 
 
   describe 'transaction_type' do
-    let(:loyalty_points_debit_transaction) { FactoryGirl.build(:loyalty_points_debit_transaction) }
-    let(:loyalty_points_credit_transaction) { FactoryGirl.build(:loyalty_points_credit_transaction) }
+    let(:loyalty_points_debit_transaction) { FactoryBot.build(:loyalty_points_debit_transaction) }
+    let(:loyalty_points_credit_transaction) { FactoryBot.build(:loyalty_points_credit_transaction) }
 
     context "when type is Spree::LoyaltyPointsCreditTransaction" do
 

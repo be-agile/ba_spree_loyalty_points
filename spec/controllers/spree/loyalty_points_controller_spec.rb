@@ -5,6 +5,7 @@ describe Spree::LoyaltyPointsController, type: :controller do
   let(:user) { mock_model(Spree.user_class).as_null_object }
 
   before(:each) do
+    @routes = Spree::Core::Engine.routes
     allow(controller).to receive(:spree_current_user).and_return(user)
     allow(user).to receive(:generate_spree_api_key!).and_return(true)
     allow(controller).to receive(:authorize!).and_return(true)
@@ -84,8 +85,8 @@ describe Spree::LoyaltyPointsController, type: :controller do
 
     context "when per_page is not passed as a parameter" do
 
-      it "should receive per with Spree::Backend::Config[:admin_orders_per_page] on loyalty_points_transactions" do
-        expect(loyalty_points_transactions).to receive(:per).with(Spree::Backend::Config[:admin_orders_per_page])
+      it "should receive per with default value 25 on loyalty_points_transactions" do
+        expect(loyalty_points_transactions).to receive(:per).with(25)
         send_request
       end
 

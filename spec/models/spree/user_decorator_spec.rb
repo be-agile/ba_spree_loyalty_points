@@ -2,7 +2,7 @@ require "spec_helper"
 
 describe Spree.user_class, type: :model do
 
-  let(:user) { FactoryGirl.build(:user_with_loyalty_points) }
+  let(:user) { FactoryBot.build(:user_with_loyalty_points) }
 
   it "is valid with valid attributes" do
     expect(user).to be_valid
@@ -21,8 +21,12 @@ describe Spree.user_class, type: :model do
   end
 
   describe 'loyalty_points_balance_sufficient?' do
+    let!(:spree_country) { Spree::Country.first || Spree::Country.create!(name: 'Japan', iso_name: 'JAPAN', iso: 'JP', iso3: 'JPN', numcode: 392) }
+    let!(:spree_store) { Spree::Store.create!(name: 'Test Store', code: 'test', url: 'test.com', mail_from_address: 'test@test.com', default: true, default_currency: 'JPY', default_country: spree_country) }
+
     before :each do
-      allow(Spree::Store.default).to receive(:loyalty_points_redeeming_balance).and_return(30)
+      allow(Spree::Store).to receive(:default).and_return(spree_store)
+      spree_store.define_singleton_method(:preferred_loyalty_points_redeeming_balance) { 30 }
     end
 
     context "when loyalty_points_balance greater than redeeming balance" do
@@ -67,7 +71,7 @@ describe Spree.user_class, type: :model do
     let(:order) { create(:order_with_loyalty_points) }
 
     before :each do
-      order.total = BigDecimal.new(30.0, 2)
+      order.total = BigDecimal('30.0')
     end
 
     context "when loyalty_points_equivalent_currency greater than order total" do
@@ -111,9 +115,13 @@ describe Spree.user_class, type: :model do
   describe 'loyalty_points_equivalent_currency' do
 
     let (:conversion_rate) { 5.0 }
+    let!(:spree_country) { Spree::Country.first || Spree::Country.create!(name: 'Japan', iso_name: 'JAPAN', iso: 'JP', iso3: 'JPN', numcode: 392) }
+    let!(:store) { Spree::Store.create!(name: 'Test Store', code: 'test2', url: 'test2.com', mail_from_address: 'test@test.com', default: true, default_currency: 'JPY', default_country: spree_country) }
 
     before :each do
-      allow(Spree::Store.default).to receive(:loyalty_points_conversion_rate).and_return(conversion_rate)
+      rate = conversion_rate
+      allow(Spree::Store).to receive(:default).and_return(store)
+      store.define_singleton_method(:preferred_loyalty_points_conversion_rate) { rate }
     end
 
     it "should return balance * conversion_rate" do

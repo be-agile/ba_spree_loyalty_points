@@ -38,17 +38,21 @@ shared_examples_for "Order::LoyaltyPoints" do
       it "should add a Loyalty Points Credit Transaction" do
         expect {
           resource_instance.send(:create_credit_transaction, 30)
-        }.to change{ Spree::LoyaltyPointsCreditTransaction.count }.by(1)
+        }.to change{ resource_instance.user.loyalty_points_credit_transactions.count }.by(1)
       end
 
       it "should create a Loyalty Points Credit Transaction" do
         resource_instance.send(:create_credit_transaction, 30)
-        expect(Spree::LoyaltyPointsCreditTransaction.last.loyalty_points).to eq(30)
+        # The transaction is created via user, so we need to fetch it from user, filtered by source
+        transaction = resource_instance.user.loyalty_points_credit_transactions.where(source: resource_instance).last
+        expect(transaction.loyalty_points).to eq(30)
       end
 
       it "should create a Loyalty Points Credit Transaction" do
         resource_instance.send(:create_credit_transaction, 30)
-        expect(Spree::LoyaltyPointsCreditTransaction.last.user_id).to eq(resource_instance.user_id)
+        # The transaction is created via user, so we need to fetch it from user, filtered by source
+        transaction = resource_instance.user.loyalty_points_credit_transactions.where(source: resource_instance).last
+        expect(transaction.user_id).to eq(resource_instance.user_id)
       end
 
     end
@@ -72,17 +76,21 @@ shared_examples_for "Order::LoyaltyPoints" do
       it "should add a Loyalty Points Debit Transaction" do
         expect {
           resource_instance.send(:create_debit_transaction, 30)
-        }.to change{ Spree::LoyaltyPointsDebitTransaction.count }.by(1)
+        }.to change{ resource_instance.user.loyalty_points_debit_transactions.count }.by(1)
       end
 
       it "should create a Loyalty Points Debit Transaction" do
         resource_instance.send(:create_debit_transaction, 30)
-        expect(Spree::LoyaltyPointsDebitTransaction.last.loyalty_points).to eq(30)
+        # The transaction is created via user, so we need to fetch it from user, filtered by source
+        transaction = resource_instance.user.loyalty_points_debit_transactions.where(source: resource_instance).last
+        expect(transaction.loyalty_points).to eq(30)
       end
 
-      it "should create a Loyalty Points Credit Transaction" do
+      it "should create a Loyalty Points Debit Transaction" do
         resource_instance.send(:create_debit_transaction, 30)
-        expect(Spree::LoyaltyPointsDebitTransaction.last.user_id).to eq(resource_instance.user_id)
+        # The transaction is created via user, so we need to fetch it from user, filtered by source
+        transaction = resource_instance.user.loyalty_points_debit_transactions.where(source: resource_instance).last
+        expect(transaction.user_id).to eq(resource_instance.user_id)
       end
 
     end
@@ -137,7 +145,7 @@ shared_examples_for "Order::LoyaltyPoints" do
   describe 'credit_loyalty_points_to_user' do
 
     before :each do
-      allow(Spree::Store.default).to receive(:loyalty_points_award_period).and_return(1)
+      Spree::Store.default.update(preferred_loyalty_points_award_period: 1)
       allow(Spree::Order).to receive(:with_uncredited_loyalty_points).and_return([resource_instance])
     end
 
@@ -151,6 +159,10 @@ shared_examples_for "Order::LoyaltyPoints" do
   describe 'loyalty_points_awarded?' do
 
     context "when credit transactions are present" do
+
+      before :each do
+        resource_instance.loyalty_points_credit_transactions = create_list(:loyalty_points_credit_transaction, 1, source: resource_instance)
+      end
 
       it "should return true" do
         expect(resource_instance).to be_loyalty_points_awarded

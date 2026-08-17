@@ -13,7 +13,7 @@ shared_examples_for "LoyaltyPoints" do
         end
 
         it "should return award amount" do
-          expect(resource_instance.loyalty_points_for(amount, 'award')).to eq((amount * Spree::Store.default.loyalty_points_awarding_unit).floor)
+          expect(resource_instance.loyalty_points_for(amount, 'award')).to eq((amount * Spree::Store.default.preferred_loyalty_points_awarding_unit).floor)
         end
 
       end
@@ -37,7 +37,7 @@ shared_examples_for "LoyaltyPoints" do
     context "when purpose is to redeem" do
 
       it "should return redeem amount" do
-        expect(resource_instance.loyalty_points_for(50, 'redeem')).to eq((50 / Spree::Store.default.loyalty_points_conversion_rate).ceil)
+        expect(resource_instance.loyalty_points_for(50, 'redeem')).to eq((50 / Spree::Store.default.preferred_loyalty_points_conversion_rate).ceil)
       end
 
     end
@@ -55,7 +55,7 @@ shared_examples_for "LoyaltyPoints" do
   describe 'eligible_for_loyalty_points?' do
 
     before :each do
-      allow(Spree::Store.default).to receive(:min_amount_required_to_get_loyalty_points).and_return(30)
+      Spree::Store.default.update(preferred_min_amount_required_to_get_loyalty_points: 30)
     end
 
     context "when amount greater than min amount" do
@@ -66,7 +66,7 @@ shared_examples_for "LoyaltyPoints" do
 
     end
 
-    context "when amount less than redeeming balance" do
+    context "when amount less than min amount" do
 
       it "should return false" do
         expect(resource_instance.send(:eligible_for_loyalty_points?, 20)).to be_falsey
@@ -74,9 +74,9 @@ shared_examples_for "LoyaltyPoints" do
 
     end
 
-    context "when amount equal to redeeming balance" do
+    context "when amount equal to min amount" do
 
-      it "should return false" do
+      it "should return true" do
         expect(resource_instance.send(:eligible_for_loyalty_points?, 30)).to be_truthy
       end
 

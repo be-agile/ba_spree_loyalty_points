@@ -2,7 +2,13 @@ require "spec_helper"
 
 describe Spree::Order, type: :model do
 
-  let!(:order) { create(:order_with_loyalty_points) }
+  # Note: email must be set after creation because FactoryBot attributes are being ignored
+  # due to factory loading order issues between giga-repeat and Spree core
+  let!(:order) do
+    o = create(:order_with_loyalty_points, transactions_count: 0)
+    o.update_column(:email, "test@example.com")
+    o.reload
+  end
 
   it "is valid with valid attributes" do
     expect(order).to be_valid
@@ -53,7 +59,11 @@ describe Spree::Order, type: :model do
 
   describe 'with_hours_since_payment' do
 
-    let (:order2) { create(:order_with_loyalty_points) }
+    let!(:order2) do
+      o = create(:order_with_loyalty_points)
+      o.update_column(:email, "test2@example.com")
+      o.reload
+    end
 
     before :each do
       order.paid_at = 4.hours.ago
@@ -70,8 +80,17 @@ describe Spree::Order, type: :model do
 
   describe 'with_uncredited_loyalty_points' do
 
-    let (:order2) { create(:order_with_loyalty_points) }
-    let (:order3) { create(:order_with_loyalty_points) }
+    let!(:order2) do
+      o = create(:order_with_loyalty_points)
+      o.update_column(:email, "test2@example.com")
+      o.reload
+    end
+
+    let!(:order3) do
+      o = create(:order_with_loyalty_points)
+      o.update_column(:email, "test3@example.com")
+      o.reload
+    end
 
     before :each do
       order.paid_at = 4.hours.ago

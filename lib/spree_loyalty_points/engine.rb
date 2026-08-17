@@ -15,6 +15,7 @@ module SpreeLoyaltyPoints
       Dir.glob(File.join(File.dirname(__FILE__), '../../app/**/*_decorator*.rb')) do |c|
         Rails.configuration.cache_classes ? require(c) : load(c)
       end
+      Rails.application.config.paths["app/views"].unshift([Spree::Storefront::Engine.root, 'app/views/themes/default'].join('/'))
 
       Spree.user_class.class_eval do
         validates :loyalty_points_balance, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -26,7 +27,7 @@ module SpreeLoyaltyPoints
         end
 
         def loyalty_points_balance_sufficient?
-          loyalty_points_balance >= Spree::Store.default.loyalty_points_redeeming_balance
+          loyalty_points_balance >= Spree::Store.default.preferred_loyalty_points_redeeming_balance
         end
 
         def has_sufficient_loyalty_points?(order)
@@ -34,7 +35,7 @@ module SpreeLoyaltyPoints
         end
 
         def loyalty_points_equivalent_currency
-          loyalty_points_balance * Spree::Store.default.loyalty_points_conversion_rate
+          loyalty_points_balance * Spree::Store.default.preferred_loyalty_points_conversion_rate
         end
 
       end
